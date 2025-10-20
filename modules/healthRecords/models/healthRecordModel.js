@@ -1,57 +1,52 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 
 const filePath = path.join(__dirname, "../../../data/healthRecords.json");
 
 // Read JSON file
-function readData() {
-  const data = fs.readFileSync(filePath, "utf8");
+async function readData() {
+  const data = await fs.readFile(filePath, "utf8");
   return JSON.parse(data);
 }
 
 // Write JSON file
-function writeData(data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+async function writeData(data) {
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
 // CRUD operations
 
-// Get all health records
-exports.getAllHealthRecords = () => {
-  return readData();
+exports.getAllHealthRecords = async () => {
+  return await readData();
 };
 
-// Get a health record by ID
-exports.getHealthRecordById = (id) => {
-  const records = readData();
+exports.getHealthRecordById = async (id) => {
+  const records = await readData();
   return records.find(r => r.id === Number(id));
 };
 
-// Add a new health record
-exports.addNewHealthRecord = (record) => {
-  const records = readData();
+exports.addNewHealthRecord = async (record) => {
+  const records = await readData();
   records.push(record);
-  writeData(records);
+  await writeData(records);
   return record;
 };
 
-// Update a health record
-exports.updateExistingHealthRecord = (id, updatedRecord) => {
-  const records = readData();
+exports.updateExistingHealthRecord = async (id, updatedRecord) => {
+  const records = await readData();
   const index = records.findIndex(r => r.id === Number(id));
   if (index === -1) return null;
 
   records[index] = { ...records[index], ...updatedRecord };
-  writeData(records);
+  await writeData(records);
   return records[index];
 };
 
-// Delete a health record
-exports.deleteHealthRecord = (id) => {
-  const records = readData();
+exports.deleteHealthRecord = async (id) => {
+  const records = await readData();
   const filtered = records.filter(r => r.id !== Number(id));
   if (filtered.length === records.length) return false;
 
-  writeData(filtered);
+  await writeData(filtered);
   return true;
 };

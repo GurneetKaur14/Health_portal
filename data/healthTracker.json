@@ -10,5 +10,11 @@
     "goal": "Run 5km daily",
     "progress": "3km average",
     "status": "In Progress"
+  },
+  {
+    "id": "3",
+    "goal": "Run 5km daily",
+    "progress": "3km average",
+    "status": "In Progress"
   }
 ]

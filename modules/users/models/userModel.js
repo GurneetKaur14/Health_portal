@@ -1,54 +1,52 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 
 const filePath = path.join(__dirname, "../../../data/users.json");
 
-function readData() {
-    const data = fs.readFileSync(filePath, "utf8");
-     return JSON.parse(data)
+// Read JSON file
+async function readData() {
+  const data = await fs.readFile(filePath, "utf8");
+  return JSON.parse(data);
+}
+
+// Write JSON file
+async function writeData(data) {
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+}
+
+// CRUD operations
+
+exports.getAllUsers = async () => {
+  return await readData();
 };
 
-function writeData(data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
-
-//Get all the users
-
-exports.getAllUsers = () => {
-    return readData(); 
-}
-
-//Get user by ID
-exports.getUserById = (id) => {
-    const users = readData();
-    return users.find((u) => u.id === Number(id));
+exports.getUserById = async (id) => {
+  const users = await readData();
+  return users.find(u => u.id === Number(id));
 };
 
-//Add new user
-exports.addNewUser = (user) => {
-    const users = readData();
-    users.push(user);
-    writeData(users);
-    return user;
-}
+exports.addNewUser = async (user) => {
+  const users = await readData();
+  users.push(user);
+  await writeData(users);
+  return user;
+};
 
-//Update existing user
-exports.updateExistingUser = (id, updatedUser) => {
-    const users = readData();
-    const index = users.findIndex((u) => u.id === Number(id));
+exports.updateExistingUser = async (id, updatedUser) => {
+  const users = await readData();
+  const index = users.findIndex(u => u.id === Number(id));
   if (index === -1) return null;
 
   users[index] = { ...users[index], ...updatedUser };
-  writeData(users);
+  await writeData(users);
   return users[index];
 };
 
-//// Delete user
-exports.deleteUser = (id) => {
-  const users = readData();
-  const filtered = users.filter((u) => u.id !== Number(id));
+exports.deleteUser = async (id) => {
+  const users = await readData();
+  const filtered = users.filter(u => u.id !== Number(id));
   if (filtered.length === users.length) return false;
 
-  writeData(filtered);
+  await writeData(filtered);
   return true;
 };

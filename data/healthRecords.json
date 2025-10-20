@@ -11,8 +11,16 @@
     "id": 2,
     "patientId": 2,
     "doctorId": 1,
-    "diagnosis": "High Sugar Level",
+    "diagnosis": "l",
     "prescription": "Medication A, regular exercise",
     "date": "2025-10-12"
+  },
+  {
+    "id": 3,
+    "patientId": 2,
+    "doctorId": 1,
+    "diagnosis": "l",
+    "prescription": "Medication A, regular exercise",
+    "date": "2025-1"
   }
 ]

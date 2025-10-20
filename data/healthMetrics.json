@@ -7,5 +7,14 @@
     "bloodPressure": "120/80",
     "heartRate": 72,
     "date": "2025-10-14"
+  },
+  {
+    "id": 2,
+    "patientId": 1,
+    "steps": 5700,
+    "calories": 2000,
+    "bloodPressure": "120/80",
+    "heartRate": 72,
+    "date": "2025-10-14"
   }
 ]
