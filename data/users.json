@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Sara Clark",
+    "email": "Sara.Clark@gmail.com",
+    "password": "sara1232",
+    "role": "patient"
+  },
+  {
+    "id": 2,
+    "name": "Dr. Mehta",
+    "email": "mehta.k@hotmail.com",
+    "password": "kmehta",
+    "role": "doctor"
+  }
+]

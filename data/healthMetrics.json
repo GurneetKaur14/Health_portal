@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "patientId": 1,
+    "steps": 5000,
+    "calories": 2000,
+    "bloodPressure": "120/80",
+    "heartRate": 72,
+    "date": "2025-10-14"
+  }
+]

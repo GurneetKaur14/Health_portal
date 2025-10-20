@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "patientId": 1,
+    "doctorId": 2,
+    "diagnosis": "High Blood Pressure",
+    "prescription": "Medication A, regular exercise",
+    "date": "2025-10-10"
+  },
+  {
+    "id": 2,
+    "patientId": 2,
+    "doctorId": 1,
+    "diagnosis": "High Sugar Level",
+    "prescription": "Medication A, regular exercise",
+    "date": "2025-10-12"
+  }
+]

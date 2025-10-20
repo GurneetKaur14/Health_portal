@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "goal": "Lose 5kg",
+    "progress": "Lost 3kg",
+    "status": "In progress"
+  },
+  {
+    "id": 2,
+    "goal": "Run 5km daily",
+    "progress": "3km average",
+    "status": "In Progress"
+  }
+]

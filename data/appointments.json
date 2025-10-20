@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "patientName": "Sara Clark",
+    "doctor": "Dr. Joseph",
+    "date": "2025-10-18",
+    "time": "10:00 AM",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "patientName": "Mehak",
+    "doctor": "Dr. Mehta",
+    "date": "2025-10-19",
+    "time": "11:00 AM",
+    "status": "confirmed"
+  }
+]
