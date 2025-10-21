@@ -8,37 +8,16 @@
   },
   {
     "id": 2,
-    "name": "Dr. Mehta",
-    "email": "mehta.k@hotmail.com",
-    "password": "kmehta",
-    "role": "doctor"
-  },
-  {
-    "id": 3,
-    "name": "Sara Clark",
-    "email": "Sara.Clark@gmail.com",
-    "password": "sara",
+    "name": "Sarthi",
+    "email": "Sarthi.Gaurav@gmail.com",
+    "password": "sara123",
     "role": "patient"
   },
   {
     "id": 3,
-    "name": "Sara Clark",
-    "email": "Sara.Clark@gmail.com",
-    "password": "sara",
-    "role": "patient"
-  },
-  {
-    "id": 3,
-    "name": "Sara Clark",
-    "email": "Sara.Clark@gmail.com",
-    "password": "sara",
-    "role": "patient"
-  },
-  {
-    "id": 3,
-    "name": "Sara Clark",
-    "email": "Sara.Clark@gmail.com",
-    "password": "sara",
+    "name": "Gurneet",
+    "email": "Gurneet.Kaur@gmail.com",
+    "password": "123gurn",
     "role": "patient"
   }
 ]
