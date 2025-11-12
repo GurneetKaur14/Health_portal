@@ -3,64 +3,31 @@ Gurneet Kaur
 # GitHub Repository Link:
 https://github.com/GurneetKaur14/Health_portal.git
 
-# Healthcare Tracker and Appointment portal
-This full stack project is a healthcare tracker and appointment portal for tracking health records and appointments.
+# Phase 3: Database Integration with MongoDB Atlas
 
-# Key Features:
-•	Authentication & Authorisation: The system will validate the user information before they are allowed to log in. Patients can only view their own data, while Doctors can see all the appointments and assigned patients.
+### Tasks Implemented:
+- Connected Express.js app to MongoDB Atlas using Mongoose.
+- Added `.env` file for secure environment variables (MongoDB URI).
+- Created connection middleware (`shared/middlewares/connect-db.js`).
+- Replaced JSON data with actual MongoDB collections.
+- Implemented CRUD operations for all modules:
+  - Users
+  - Heath Tracker
+  - Health Metrics
+  - Health Records
+  - Appointments
+- Added validation using `express-validator`.
+- Added searching, sorting, and pagination in all GET routes.
+- Tested all routes in Postman for:
+  - Create
+  - Read (all + by ID)
+  - Update
+  - Delete
+  - Search & Pagination
+- Handled validation and error messages properly.
 
-•	User Management: Implements full CRUD operations for managing users, including adding, viewing, updating, and deleting records. Input validation ensures required fields like name, email, and role are correct, with role-based rules allowing only valid roles such as patient or doctor. 
-
-•	Health Tracking: To manage (create, update, delete, view) and set and monitor health goals, CRUD operations will be performed. 
-
-•	Appointment Manager: It will allow patients to browse doctors based on specialization and availability. Doctors can view the appointments requested and have the authority to confirm or reject an appointment. 
-
-•	Records and History: Doctors can add prescriptions, diagnoses or leave any required comments. Patients can view their medical history.
-
-# Implemented modular architecture
-- Each module have its own folders:
-- Models: Handle CRUD operations and read/write to JSON files.
-- Routes: Independent Express Router for each module.
-- Middlewares: Input validation using `express-validator`.
-
----
-
-# ## API Endpoints (Examples)
-
-### Users
-- `GET /api/users` → Get all users
-- `GET /api/users/:id` → Get a single user
-- `POST /api/users` → Add new user (with validation)
-- `PUT /api/users/:id` → Update user (with validation)
-- `DELETE /api/users/:id` → Delete user
-
-### Appointments
-- `GET /api/appointments` → Get all appointments
-- `GET /api/appointments/:id` → Get single appointment
-- `POST /api/appointments` → Create new appointment (validate patient, doctor, date)
-- `PUT /api/appointments/:id` → Update appointment
-- `DELETE /api/appointments/:id` → Delete appointment
-
-*(Similar endpoints implemented for HealthRecords, HealthMetrics, and HealthTracker)*
-
----
-
-## Validation
-- Email must be valid (`example@domain.com`)
-- Role must be `patient` or `doctor`
-- Required fields cannot be empty
-- IDs are numeric and validated before CRUD operations
-
----
-
-## HTTP Responses
-- 200 OK → Successful GET, PUT, DELETE
-- 201 Created → Successful POST
-- 400 Bad Request → Validation errors
-- 404 Not Found → Resource not found
-- 500 Internal Server Error → Server errors
-
----
+### Team Contributions:
+- Gurneet Kaur — Implemented all backend routes, Mongoose models, and database integration.
 
 ## Testing
 - All endpoints tested in **Postman**.
@@ -69,11 +36,4 @@ This full stack project is a healthcare tracker and appointment portal for track
 
 ---
 
-## Contribution
-- Gurneet Kaur: Implemented modular architecture, CRUD logic, validation, and all five modules.
 
----
-
-## Notes
-- JSON files act as the data source for all modules.
-- Server runs on port **3000** by default (`node server.js`).
