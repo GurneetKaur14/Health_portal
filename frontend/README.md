@@ -12,7 +12,7 @@
 - **Client-side validation** included:
   - Required fields (ID, patient name, doctor, date, time)
   - Status selection
-- **User-friendly feedback**:*
+- **User-friendly feedback**:
   - Error messages displayed for invalid inputs
   - Success messages displayed after create/update
 
