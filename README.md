@@ -15,6 +15,7 @@
 - **User-friendly feedback**:*
   - Error messages displayed for invalid inputs
   - Success messages displayed after create/update
+- Implemented frontend **Searching, sorting, filtering and pagination** for the appointments list.
 
 ### 2. API Integration
 - Used fetch hook** to interact with backend.
