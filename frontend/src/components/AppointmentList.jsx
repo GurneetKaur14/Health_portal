@@ -8,6 +8,9 @@ export default function AppointmentsList() {
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
 
   const navigate = useNavigate();
 
@@ -17,8 +20,9 @@ export default function AppointmentsList() {
     try {
       setLoading(true);
       const res = await fetch(
-     `${BASE_URL}?sort_by=${sortBy}&sort_order=${sortOrder}`
+     `${BASE_URL}?search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}&page=${page}&limit=${limit}`
 );
+
       if (!res.ok) {
         throw new Error("Failed to fetch appointments");
       }
@@ -59,9 +63,8 @@ export default function AppointmentsList() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder, search, page, limit]);
 
-  if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
@@ -104,26 +107,55 @@ export default function AppointmentsList() {
     </select>
    </div>
 
+    <div style={{ marginBottom: "15px" }}>
+      <input
+        type="text"
+        placeholder="Search appointment by patient name"
+        value={search}
+        onChange={(e) => {
+        setSearch(e.target.value);
+        setPage(1); 
+      }}
+        style={{ padding: "5px", width: "300px" }}
+      />
+    </div>
 
-      <h2>Appointments List</h2>
+    <div style={{ marginBottom: "15px" }}>
+      <label>Show: </label>
+      <select
+        value={limit}
+        onChange={(e) => {
+        setLimit(e.target.value);
+        setPage(1);
+      }}
+      >
+      <option value="5">5 per page</option>
+      <option value="10">10 per page</option>
+      <option value="20">20 per page</option>
+    </select>
+    </div>
 
-      {appointments.length === 0 && <p>No appointments found.</p>}
+    {loading && <p style={{ color: "gray" }}>Loading...</p>}
 
-      {success && <p style={{ color: "green", textAlign: "center" }}>{success}</p>}
+    <h2>Appointments List</h2>
 
-      <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
-        {appointments.map((app) => (
-          <li
-            key={app._id}
-            style={{
-              marginBottom: "15px",
-              padding: "10px",
-              border: "1px solid #ddddddff",
-              borderRadius: "8px",
-              backgroundColor: "#b7cbfaff",
-            }}
-          >
-            <div style={{ fontSize: "16px", marginBottom: "5px" }}>
+    {appointments.length === 0 && <p>No appointments found.</p>}
+
+    {success && <p style={{ color: "green", textAlign: "center" }}>{success}</p>}
+
+    <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
+      {appointments.map((app) => (
+        <li
+          key={app._id}
+          style={{
+            marginBottom: "15px",
+            padding: "10px",
+            border: "1px solid #ddddddff",
+            borderRadius: "8px",
+            backgroundColor: "#b7cbfaff",
+          }}
+        >
+       <div style={{ fontSize: "16px", marginBottom: "5px" }}>
               <strong>Patient:</strong> {app.patientName}
             </div>
             <div style={{ fontSize: "14px", marginBottom: "5px" }}>
@@ -148,8 +180,28 @@ export default function AppointmentsList() {
               <button onClick={() => handleDelete(app._id)}>Delete</button>
             </div>
           </li>
-        ))}
+          ))}
       </ul>
+
+      <div style={{ marginTop: "20px", textAlign: "center" }}>
+       <button
+        disabled={page === 1}
+        onClick={() => setPage((prev) => prev - 1)}
+        style={{ marginRight: "10px" }}
+  >
+      Previous
+     </button>
+
+     <span style={{ fontWeight: "bold" }}>Page {page}</span>
+
+       <button
+        onClick={() => setPage((prev) => prev + 1)}
+        style={{ marginLeft: "10px" }}
+    >
+       Next 
+    </button>
     </div>
-  );
+
+  </div>
+  );   
 }
