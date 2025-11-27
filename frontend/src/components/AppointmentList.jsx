@@ -6,6 +6,9 @@ export default function AppointmentsList() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("asc");
+
   const navigate = useNavigate();
 
   const BASE_URL = "http://localhost:3000/api/appointments";
@@ -13,8 +16,9 @@ export default function AppointmentsList() {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const res = await fetch(BASE_URL);
-
+      const res = await fetch(
+     `${BASE_URL}?sort_by=${sortBy}&sort_order=${sortOrder}`
+);
       if (!res.ok) {
         throw new Error("Failed to fetch appointments");
       }
@@ -55,7 +59,7 @@ export default function AppointmentsList() {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [sortBy, sortOrder]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -83,6 +87,23 @@ export default function AppointmentsList() {
   </p>
     
       <p>View upcoming appointments:</p>
+       
+    <div style={{ marginBottom: "15px" }}>
+      <label><strong>Sort By:</strong> </label>
+      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+      <option value="date">Date</option>
+      <option value="patientName">Patient Name</option>
+      <option value="doctor">Doctor</option>
+      <option value="status">Status</option>
+  </select>
+
+    <label style={{ marginLeft: "15px" }}><strong>Order:</strong> </label>
+    <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+   </div>
+
 
       <h2>Appointments List</h2>
 
