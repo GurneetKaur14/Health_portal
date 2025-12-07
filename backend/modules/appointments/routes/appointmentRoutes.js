@@ -62,7 +62,7 @@ router.get(
   }
 );
 
-// PATIENT: create new appointment
+
 router.post(
   "/",
   authorize(["patient"]),
