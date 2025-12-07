@@ -1,90 +1,184 @@
 const express = require("express");
 const router = express.Router();
 
-const model = require("../models/appointmentModel");
-const { appointmentValidationRules, validateAppointment } = require("../middlewares/appointmentValidation");
+const Appointment = require("../models/appointmentModel");
+const User = require("../../users/models/userModel");
 
-// GET /api/appointments → all
-router.get("/", async (req, res) => {
-  try {
-    const search = req.query.search || "";
-    const sort_by = req.query.sort_by || "date";
-    const sort_order = req.query.sort_order === "asc" ? 1 : -1;
-    const limit = parseInt(req.query.limit) || 10;
-    const page = parseInt(req.query.page) || 1;
+const authorize = require("../../../shared/middlewares/authorize");
+const {
+  appointmentValidationRules,
+  validateAppointment,
+} = require("../middlewares/appointmentValidation");
 
-    // Build filter for search
-    const filter = {
-      $or: [
-        { patientName: { $regex: search, $options: "i" } },
-        { doctor: { $regex: search, $options: "i" } },
-        { status: { $regex: search, $options: "i" } },
-      ],
-    };
+// GET all appointments (admin/doctor/patient)
+router.get(
+  "/",
+  authorize(["admin", "doctor", "patient"]),
+  async (req, res) => {
+    try {
+      const search = req.query.search || "";
+      const sort_by = req.query.sort_by || "date";
+      const sort_order = req.query.sort_order === "asc" ? 1 : -1;
+      const limit = parseInt(req.query.limit) || 10;
+      const page = parseInt(req.query.page) || 1;
 
-    // Count total matching appointments
-    const count = await model.countDocuments(filter);
-    if (count === 0)
-      return res.status(200).json({ count: 0, page: 1, data: [] });
+      const filter = {
+        $or: [
+          { patientName: { $regex: search, $options: "i" } },
+          { doctorName: { $regex: search, $options: "i" } },
+          { status: { $regex: search, $options: "i" } },
+        ],
+      };
 
-    // Fetch paginated & sorted results
-    const appointments = await model.find(filter)
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .sort({ [sort_by]: sort_order });
+      const count = await Appointment.countDocuments(filter);
 
-    res.status(200).json({ count, page, limit, data: appointments });
-  } catch (err) {
-    console.error("Error fetching appointments:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+      const appointments = await Appointment.find(filter)
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .sort({ [sort_by]: sort_order });
+
+      res.json({ count, page, limit, data: appointments });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   }
-});
+);
 
-// GET /api/appointments/:id → single
-router.get("/:id", async (req, res) => {
-  try {
-    const appointment = await model.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
-    res.status(200).json(appointment);
-  } catch (err) {
-    console.error("Error fetching appointment:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+// GET single appointment by id
+router.get(
+  "/:id",
+  authorize(["admin", "doctor", "patient"]),
+  async (req, res) => {
+    try {
+      const app = await Appointment.findById(req.params.id);
+      if (!app)
+        return res.status(404).json({ message: "Appointment not found" });
+      res.json(app);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   }
-});
+);
 
-// POST /api/appointments → add new
-router.post("/", appointmentValidationRules, validateAppointment, async (req, res) => {
-  try {
-    const newAppointment = await model.create(req.body);
-    res.status(201).json(newAppointment);
-  } catch (err) {
-    console.error("Error adding appointment:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+// PATIENT: create new appointment
+router.post(
+  "/",
+  authorize(["patient"]),
+  async (req, res) => {
+    try {
+      const { doctorId, date, time } = req.body;
+      if (!doctorId || !date || !time) {
+        return res
+          .status(400)
+          .json({ message: "doctorId, date and time are required" });
+      }
 
-// PUT /api/appointments/:id → update
-router.put("/:id", appointmentValidationRules, validateAppointment, async (req, res) => {
-  try {
-    const updated = await model.findByIdAndUpdate(req.params.id, req.body, {new: true});
-    if (!updated) return res.status(404).json({ message: "Appointment not found" });
-    res.status(200).json(updated);
-  } catch (err) {
-    console.error("Error updating appointment:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+      const patientId = req.account._id; // updated
+      const patient = await User.findById(patientId);
+      const doctor = await User.findById(doctorId);
 
-// DELETE /api/appointments/:id → delete
-router.delete("/:id", async (req, res) => {
-  try {
-    const success = await model.findByIdAndDelete(req.params.id);
-    if (!success) return res.status(404).json({ message: "Appointment not found" });
-    res.status(200).json({ message: "Appointment deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting appointment:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+      if (!patient || !doctor) {
+        return res
+          .status(404)
+          .json({ message: "Patient or Doctor not found" });
+      }
+
+      if (doctor.role !== "doctor") {
+        return res
+          .status(400)
+          .json({ message: "Selected user is not a doctor" });
+      }
+
+      const newAppointment = await Appointment.create({
+        patientId,
+        doctorId,
+        patientName: patient.name,
+        doctorName: doctor.name,
+        date,
+        time,
+        status: "pending",
+      });
+
+      res.status(201).json(newAppointment);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   }
-});
+);
+
+// PATIENT: view only their own appointments
+router.get(
+  "/my",
+  authorize(["patient"]),
+  async (req, res) => {
+    try {
+      const patientId = req.account._id;
+      const appointments = await Appointment.find({ patientId }).sort({ date: 1 });
+      res.json(appointments);
+    } catch (err) {
+      console.error("Error fetching patient's appointments:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+// DOCTOR: view only their own appointments
+router.get(
+  "/doctor",
+  authorize(["doctor"]),
+  async (req, res) => {
+    try {
+      const doctorId = req.account._id;
+      const appointments = await Appointment.find({ doctorId }).sort({ date: 1 });
+      res.json(appointments);
+    } catch (err) {
+      console.error("Error fetching doctor's appointments:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+// UPDATE appointment
+router.put(
+  "/:id",
+  authorize(["admin", "doctor", "patient"]),
+  appointmentValidationRules,
+  validateAppointment,
+  async (req, res) => {
+    try {
+      const updated = await Appointment.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true }
+      );
+      if (!updated)
+        return res.status(404).json({ message: "Appointment not found" });
+      res.json(updated);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
+// DELETE appointment (admin only)
+router.delete(
+  "/:id",
+  authorize(["admin"]),
+  async (req, res) => {
+    try {
+      const deleted = await Appointment.findByIdAndDelete(req.params.id);
+      if (!deleted)
+        return res.status(404).json({ message: "Appointment not found" });
+      res.json({ message: "Appointment deleted successfully" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
 
 module.exports = router;
