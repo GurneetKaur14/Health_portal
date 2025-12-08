@@ -1,9 +1,10 @@
-import { useState} from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {getToken} from "../utils/auth";
+import { getToken, getUserRole } from "../utils/auth"; // <-- import getUserRole
 
 export default function BookAppointment() {
   const navigate = useNavigate();
+  const role = getUserRole(); // get current user role
 
   const [form, setForm] = useState({
     patientName: "",
@@ -12,13 +13,12 @@ export default function BookAppointment() {
     time: "",
     status: "pending",
   });
-  
- const [doctors] = useState([
-  { id: "6935dad69e764be8f2dc1f9e", name: "Joshua" },
-  { id: "6935daae9e764be8f2dc1f9b", name: "Gagandeep" },
-  { id: "6935da719e764be8f2dc1f98", name: "Alana" },
-]);
 
+  const [doctors] = useState([
+    { id: "6935dad69e764be8f2dc1f9e", name: "Joshua" },
+    { id: "6935daae9e764be8f2dc1f9b", name: "Gagandeep" },
+    { id: "6935da719e764be8f2dc1f98", name: "Alana" },
+  ]);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -38,17 +38,17 @@ export default function BookAppointment() {
 
     try {
       const token = getToken();
-      if(!token){
-        setError("You must be logged in")
+      if (!token) {
+        setError("You must be logged in");
         return;
       }
 
       const res = await fetch("http://localhost:3000/api/appointments", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `${token}`
-         },
+          Authorization: `Bearer ${token}`, // include Bearer
+        },
         body: JSON.stringify(form),
       });
 
@@ -58,6 +58,7 @@ export default function BookAppointment() {
         if (data.errors && data.errors.length > 0) {
           setError(data.errors[0].msg);
         } else {
+          setError(data.message || "Booking failed");
           console.log("Backend response:", data);
         }
         return;
@@ -73,7 +74,6 @@ export default function BookAppointment() {
       });
 
       setTimeout(() => navigate("/"), 1000);
-
     } catch (err) {
       console.error("Network Error:", err);
       setError("Server not reachable");
@@ -118,6 +118,20 @@ export default function BookAppointment() {
     error: { color: "red", textAlign: "center", marginBottom: "10px" },
     success: { color: "green", textAlign: "center", marginBottom: "10px" },
   };
+
+  // -------------------------
+  // RENDER
+  // -------------------------
+  if (role === "doctor") {
+    return (
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Book Appointment</h2>
+        <p style={{ color: "red", textAlign: "center" }}>
+          Doctors are not allowed to book appointments.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -178,7 +192,9 @@ export default function BookAppointment() {
           />
         </div>
 
-        <button type="submit" style={styles.button}>Book Appointment</button>
+        <button type="submit" style={styles.button}>
+          Book Appointment
+        </button>
       </form>
     </div>
   );
