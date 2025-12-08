@@ -22,6 +22,7 @@ router.get(
       const limit = parseInt(req.query.limit) || 10;
       const page = parseInt(req.query.page) || 1;
 
+      const user = req.account; // decoded token from authorize middleware
       const filter = {
         $or: [
           { patientName: { $regex: search, $options: "i" } },
@@ -29,6 +30,14 @@ router.get(
           { status: { $regex: search, $options: "i" } },
         ],
       };
+
+      // Filter by role
+      if (user.role === "doctor") {
+        filter.doctorId = user._id; // only this doctor's appointments
+      } else if (user.role === "patient") {
+        filter.patientId = user._id; // only this patient's appointments
+      }
+      // Admin sees all, no extra filter
 
       const count = await Appointment.countDocuments(filter);
 
@@ -141,6 +150,34 @@ router.get(
   }
 );
 
+router.put(
+  "/:id/status",
+  authorize(["admin", "doctor"]),
+  async (req, res) => {
+    try {
+      const { status } = req.body;
+      const appointment = await Appointment.findById(req.params.id);
+
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+
+      const user = req.account;
+      if (user.role === "doctor" && appointment.doctorId.toString() !== user._id) {
+        return res.status(403).json({ message: "Not authorized to update this appointment" });
+      }
+
+      appointment.status = status;
+      await appointment.save();
+
+      res.json({ message: "Appointment status updated successfully", appointment });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 // UPDATE appointment
 router.put(
   "/:id",
@@ -164,15 +201,24 @@ router.put(
   }
 );
 
-// DELETE appointment (admin only)
+// DELETE appointment
 router.delete(
   "/:id",
-  authorize(["admin"]),
+  authorize(["admin", "doctor"]),
   async (req, res) => {
     try {
-      const deleted = await Appointment.findByIdAndDelete(req.params.id);
-      if (!deleted)
+      const appointment = await Appointment.findById(req.params.id);
+      if (!appointment)
         return res.status(404).json({ message: "Appointment not found" });
+
+      const user = req.account;
+
+      // Only admin or doctor who owns the appointment can delete
+      if (user.role === "doctor" && appointment.doctorId.toString() !== user._id) {
+        return res.status(403).json({ message: "Not authorized to delete this appointment" });
+      }
+
+      await Appointment.findByIdAndDelete(req.params.id);
       res.json({ message: "Appointment deleted successfully" });
     } catch (err) {
       console.error(err);
@@ -180,5 +226,6 @@ router.delete(
     }
   }
 );
+
 
 module.exports = router;

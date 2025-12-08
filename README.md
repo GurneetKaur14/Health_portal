@@ -1,34 +1,95 @@
-## Student
-- Gurneet Kaur
+# Health Portal Project
 
-## Phase 4 Implementation Tasks
+## Phase 5: Authentication & Authorization
 
-### 1. Develop UI for Features
-- Created **forms/UI for CRUD operations**:
-  - **Book Appointment** – create new appointments with ID, patient name, doctor, date, time, and status.
-  - **Edit Appointment** – update existing appointment with pre-filled form.
-  - **View Appointment** – fetch and display appointment details by ID.
-- **React Router** used for navigation between pages (e.g., `/`, `/edit/:id`, `/book`, `/view/:id`).
-- **Client-side validation** included:
-  - Required fields (ID, patient name, doctor, date, time)
-  - Status selection
-- **User-friendly feedback**:*
-  - Error messages displayed for invalid inputs
-  - Success messages displayed after create/update
-- Implemented frontend **Searching, sorting, filtering and pagination** for the appointments list.
-
-### 2. API Integration
-- Used fetch hook** to interact with backend.
-- All **CRUD operations performed through API calls** (no hard-coded data):
-  - Create appointment (`POST /api/appointments`)
-  - Edit appointment (`PUT /api/appointments/:id`)
-  - View appointment (`GET /api/appointments/:id`)
-- Backend validation ensures correct data is stored in MongoDB.
-
-### 3. Testing
-- Frontend tested by performing all CRUD operations:
-  - Verified **data updates correctly** in MongoDB Atlas.
-  - Verified **form validations, error messages, and success feedback** display correctly.
-  - Verified **View Appointment** correctly fetches and displays data.
+**Objective:**  
+Secure the project with JWT-based authentication, email-based OTP verification, and role-based access control (RBAC).  
 
 ---
+
+### 1. User Roles
+The system supports the following roles:  
+- **Admin** – Full access to all routes and user management.  
+- **Doctor** – Can view and manage their own appointments.  
+- **Patient** – Can book and view their own appointments.  
+
+---
+
+### 2. Authentication Flow
+1. **Login (Step 1)**  
+   - Users provide **email** and **password**.  
+   - Backend validates credentials and generates a **6-digit OTP**.  
+   - OTP is sent to the user’s email and stored temporarily in the backend.  
+
+2. **OTP Verification (Step 2)**  
+   - Users enter the OTP on the verification page.  
+   - Backend validates OTP and generates a **JWT access token**.  
+   - The JWT includes the user’s `_id` and `role`.  
+
+3. **Token Storage**  
+   - Token and user details are stored in **localStorage**.  
+   - Token is attached to all protected API requests.  
+
+4. **Logout**  
+   - Clears token and user information from localStorage.  
+   - Redirects user to the login page.  
+
+---
+
+### 3. Protected Routes & Role-Based Access Control (RBAC)
+- **Admin-only routes:**  
+  - `/users` → Manage users (create, update, delete)  
+
+- **Doctor routes:**  
+  - `/appointments` → View and manage their own appointments  
+  - `/appointments/:id/status` → Update appointment status  
+
+- **Patient routes:**  
+  - `/appointments` → Book new appointments  
+  - `/appointments/my` → View own appointments  
+
+**Middleware:**  
+- `authorize(allowedRoles)` checks JWT validity and user role.  
+- Unauthorized access returns **401** (no token / expired) or **403** (role mismatch).  
+
+---
+
+### 4. Frontend Implementation
+- **Login page** (`Login.jsx`) – Handles email/password input and sends OTP request.  
+- **OTP verification page** (`VerifyOtp.jsx`) – Validates OTP and retrieves JWT token.  
+- **ProtectedRoute component** – Ensures users without a valid token are redirected to `/login`.  
+- **Role-based UI** –  
+  - Doctor sees only their appointments with status update buttons.  
+  - Patient sees only their appointments and can book new ones.  
+
+---
+
+### 5. Backend Implementation
+- **Routes**:  
+  - Public: `/register`, `/login`, `/verify-login`  
+  - Protected: `/appointments`, `/users/me`, `/appointments/:id`  
+  - Role-restricted: `/users` (admin), `/appointments/:id/status` (doctor/admin)  
+
+- **OTP Storage:** Stored temporarily in MongoDB (`otpModel`) and deleted after verification.  
+- **JWT:** Signed with secret key, includes `_id` and `role`.  
+- **Password Security:** Hashed with **bcrypt**.  
+
+---
+
+### 6. Testing Scenarios
+- Login with **valid** and **invalid credentials**.  
+- OTP flow **success** and **failure**.  
+- Accessing **protected routes** without a token → redirected to `/login`.  
+- Accessing **restricted routes** with wrong role → 403 error.  
+- Accessing routes after token **expires** → 401 error.  
+- Frontend **hides UI elements** based on user role.  
+
+---
+
+### 7. Notes
+- OTP expires after 5 minutes.  
+- JWT is required for all protected requests.  
+- Role-based access ensures users can only view/modify what they are permitted.  
+
+---
+

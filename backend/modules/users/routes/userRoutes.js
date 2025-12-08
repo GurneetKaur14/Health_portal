@@ -14,7 +14,7 @@ const authorize = require("../../../shared/middlewares/authorize");
 // ------------------ PUBLIC ROUTES ------------------
 
 // REGISTER (public)
-router.post("/register", userValidationRules, validateUser, async (req, res) => {
+router.post("/register", userValidationRules(false), validateUser, async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -158,7 +158,7 @@ router.post("/", authorize(["admin"]), userValidationRules, validateUser, async 
 });
 
 // UPDATE user (admin only)
-router.put("/:id", authorize(["admin"]), userValidationRules, validateUser, async (req, res) => {
+router.put("/:id", authorize(["admin"]), userValidationRules(true), validateUser, async (req, res) => {
   try {
     const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updated) return res.status(404).json({ message: "User not found" });

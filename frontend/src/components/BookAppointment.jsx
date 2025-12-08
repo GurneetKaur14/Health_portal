@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useState} from "react";
 import { useNavigate } from "react-router-dom";
+import {getToken} from "../utils/auth";
 
 export default function BookAppointment() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    id: "",
     patientName: "",
-    doctor: "",
+    doctorId: "",
     date: "",
     time: "",
     status: "pending",
   });
+  
+ const [doctors] = useState([
+  { id: "6935dad69e764be8f2dc1f9e", name: "Joshua" },
+  { id: "6935daae9e764be8f2dc1f9b", name: "Gagandeep" },
+  { id: "6935da719e764be8f2dc1f98", name: "Alana" },
+]);
+
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -24,15 +31,24 @@ export default function BookAppointment() {
     setError("");
     setSuccess("");
 
-    if (!form.patientName || !form.doctor || !form.date || !form.time) {
+    if (!form.patientName || !form.doctorId || !form.date || !form.time) {
       setError("All fields are required");
       return;
     }
 
     try {
+      const token = getToken();
+      if(!token){
+        setError("You must be logged in")
+        return;
+      }
+
       const res = await fetch("http://localhost:3000/api/appointments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `${token}`
+         },
         body: JSON.stringify(form),
       });
 
@@ -42,16 +58,15 @@ export default function BookAppointment() {
         if (data.errors && data.errors.length > 0) {
           setError(data.errors[0].msg);
         } else {
-          setError("Failed to create appointment");
+          console.log("Backend response:", data);
         }
         return;
       }
 
       setSuccess("Appointment booked successfully!");
       setForm({
-        id: "",
         patientName: "",
-        doctor: "",
+        doctorId: "",
         date: "",
         time: "",
         status: "pending",
@@ -113,14 +128,20 @@ export default function BookAppointment() {
 
       <form onSubmit={handleSubmit}>
         <div style={styles.formGroup}>
-          <label style={styles.label}>ID:</label>
-          <input
-            style={styles.input}
-            type="number"
-            name="id"
-            value={form.id}
+          <label style={styles.label}>Select Doctor:</label>
+          <select
+            style={styles.select}
+            name="doctorId"
+            value={form.doctorId}
             onChange={handleChange}
-          />
+          >
+            <option value="">-- Choose a doctor --</option>
+            {doctors.map((doc) => (
+              <option key={doc.id} value={doc.id}>
+                {doc.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={styles.formGroup}>
@@ -130,17 +151,6 @@ export default function BookAppointment() {
             type="text"
             name="patientName"
             value={form.patientName}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Doctor Name:</label>
-          <input
-            style={styles.input}
-            type="text"
-            name="doctor"
-            value={form.doctor}
             onChange={handleChange}
           />
         </div>
@@ -166,20 +176,6 @@ export default function BookAppointment() {
             value={form.time}
             onChange={handleChange}
           />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Status:</label>
-          <select
-            style={styles.select}
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-          >
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
         </div>
 
         <button type="submit" style={styles.button}>Book Appointment</button>

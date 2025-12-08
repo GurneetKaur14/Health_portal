@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { getToken } from "../utils/auth";
 
 export default function ViewAppointment() {
   const { id } = useParams();
@@ -7,23 +8,31 @@ export default function ViewAppointment() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const BASE_URL = "http://localhost:3000/api/appointments";
-
   useEffect(() => {
     async function loadAppointment() {
       try {
-        const res = await fetch(`${BASE_URL}/${id}`);
+        const token = getToken();
+        if (!token) {
+          setError("You must be logged in");
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`http://localhost:3000/api/appointments/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!res.ok) {
-          const data = await res.json().catch(() => null);
+          const data = await res.json();
           setError(data?.message || "Appointment not found.");
           setLoading(false);
           return;
         }
 
         const data = await res.json();
-        setAppointment(data);
-
+        setAppointment(data); // single object, NOT data.data
       } catch (err) {
         console.error(err);
         setError("Failed to load appointment.");
@@ -38,55 +47,16 @@ export default function ViewAppointment() {
   if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red", textAlign: "center" }}>{error}</p>;
 
-  const styles = {
-    container: {
-      maxWidth: "500px",
-      margin: "30px auto",
-      padding: "20px",
-      border: "1px solid #ccc",
-      borderRadius: "8px",
-      backgroundColor: "#f9f9f9",
-      fontFamily: "Arial, sans-serif",
-    },
-    heading: {
-      textAlign: "center",
-      marginBottom: "20px",
-    },
-    link: {
-      display: "inline-block",
-      marginBottom: "15px",
-      color: "#4CAF50",
-      textDecoration: "none",
-    },
-    field: {
-      marginBottom: "10px",
-    },
-    label: {
-      fontWeight: "bold",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <Link to="/" style={styles.link}>← Back to Appointments</Link>
+    <div style={{ maxWidth: "500px", margin: "30px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", backgroundColor: "#f9f9f9" }}>
+      <Link to="/" style={{ display: "inline-block", marginBottom: "15px", color: "#4CAF50", textDecoration: "none" }}>← Back to Appointments</Link>
+      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Appointment Details</h2>
 
-      <h2 style={styles.heading}>Appointment Details</h2>
-
-      <p style={styles.field}>
-        <span style={styles.label}>Patient Name:</span> {appointment.patientName}
-      </p>
-      <p style={styles.field}>
-        <span style={styles.label}>Doctor:</span> {appointment.doctor}
-      </p>
-      <p style={styles.field}>
-        <span style={styles.label}>Date:</span> {appointment.date?.substring(0, 10)}
-      </p>
-      <p style={styles.field}>
-        <span style={styles.label}>Time:</span> {appointment.time}
-      </p>
-      <p style={styles.field}>
-        <span style={styles.label}>Status:</span> {appointment.status}
-      </p>
+      <p><strong>Patient Name:</strong> {appointment.patientName}</p>
+      <p><strong>Doctor:</strong> {appointment.doctorName}</p>
+      <p><strong>Date:</strong> {appointment.date?.substring(0, 10)}</p>
+      <p><strong>Time:</strong> {appointment.time}</p>
+      <p><strong>Status:</strong> {appointment.status}</p>
     </div>
   );
 }
