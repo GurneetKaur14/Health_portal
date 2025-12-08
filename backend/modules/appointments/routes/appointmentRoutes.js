@@ -182,17 +182,26 @@ router.put(
 router.put(
   "/:id",
   authorize(["admin", "doctor", "patient"]),
-  appointmentValidationRules,
-  validateAppointment,
   async (req, res) => {
     try {
+      const allowedUpdates = ["date", "time", "status"];
+      const filteredBody = {};
+
+      allowedUpdates.forEach((field) => {
+        if (req.body[field] !== undefined) {
+          filteredBody[field] = req.body[field];
+        }
+      });
+
       const updated = await Appointment.findByIdAndUpdate(
         req.params.id,
-        req.body,
+        filteredBody,
         { new: true }
       );
+
       if (!updated)
         return res.status(404).json({ message: "Appointment not found" });
+
       res.json(updated);
     } catch (err) {
       console.error(err);
@@ -200,6 +209,7 @@ router.put(
     }
   }
 );
+
 
 // DELETE appointment
 router.delete(

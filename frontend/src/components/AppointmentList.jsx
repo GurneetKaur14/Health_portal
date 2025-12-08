@@ -7,9 +7,15 @@ export default function AppointmentsList() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  // Search + Sort + Filters
+  const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+
+  // Pagination
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
 
@@ -23,19 +29,17 @@ export default function AppointmentsList() {
     try {
       setLoading(true);
       const token = getToken();
+
       let url = `${BASE_URL}?search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}&page=${page}&limit=${limit}`;
 
-      if (role === "doctor") {
-        url += `&doctorId=${userId}`;
-      }
-      if (role === "patient") {
-        url += `&patientId=${userId}`;
-      }
+      if (statusFilter) url += `&status=${statusFilter}`;
+      if (dateFilter) url += `&date=${dateFilter}`;
+
+      if (role === "doctor") url += `&doctorId=${userId}`;
+      if (role === "patient") url += `&patientId=${userId}`;
 
       const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error("Failed to fetch appointments");
@@ -61,6 +65,7 @@ export default function AppointmentsList() {
         },
         body: JSON.stringify({ status: newStatus }),
       });
+
       if (!res.ok) throw new Error();
       fetchAppointments();
     } catch {
@@ -76,6 +81,7 @@ export default function AppointmentsList() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || "Unable to delete");
@@ -91,111 +97,183 @@ export default function AppointmentsList() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [sortBy, sortOrder, search, page, limit]);
+  }, [search, sortBy, sortOrder, statusFilter, dateFilter, page, limit]);
 
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1 style={{ color: "navy" }}>Welcome to the Appointments Portal</h1>
+      <h1 style={{ color: "navy" }}>Welcome to Appointments Portal</h1>
 
-      {/* PATIENT & DOCTOR VIEW */}
+      {/* FILTERS SECTION */}
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search by name, status, date..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: "8px", width: "200px" }}
+        />
+
+        {/* Sort By */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          style={{ padding: "8px" }}
+        >
+          <option value="date">Date</option>
+          <option value="time">Time</option>
+          <option value="status">Status</option>
+          <option value="patientName">Patient Name</option>
+          <option value="doctorName">Doctor Name</option>
+        </select>
+
+        {/* Sort Order */}
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          style={{ padding: "8px" }}
+        >
+          <option value="asc">Ascending ↑</option>
+          <option value="desc">Descending ↓</option>
+        </select>
+
+        {/* Status Filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={{ padding: "8px" }}
+        >
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="fulfilled">Fulfilled</option>
+          <option value="rejected">Rejected</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+
+        {/* Date Filter */}
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          style={{ padding: "8px" }}
+        />
+
+        {/* Reset Filters */}
+        <button
+          onClick={() => {
+            setSearch("");
+            setSortBy("date");
+            setSortOrder("asc");
+            setStatusFilter("");
+            setDateFilter("");
+            setPage(1);
+          }}
+          style={{ padding: "8px", background: "#ddd" }}
+        >
+          Reset Filters
+        </button>
+      </div>
+
       <h2>Appointments List</h2>
       {appointments.length === 0 && <p>No appointments found.</p>}
-      {success && <p style={{ color: "green", textAlign: "center" }}>{success}</p>}
 
+      {success && <p style={{ color: "green" }}>{success}</p>}
+
+      {/* LIST */}
       <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
         {appointments.map((app) => (
           <li
             key={app._id}
             style={{
               marginBottom: "15px",
-              padding: "10px",
-              border: "1px solid #ddddddff",
+              padding: "12px",
+              border: "1px solid #ccc",
               borderRadius: "8px",
-              backgroundColor: "#b7cbfaff",
+              backgroundColor: "#e9f3ff",
             }}
           >
-            <div style={{ fontSize: "16px", marginBottom: "5px" }}>
+            <div>
               <strong>Patient:</strong> {app.patientName}
             </div>
-            <div style={{ fontSize: "14px", marginBottom: "5px" }}>
-              <strong>Date:</strong> {new Date(app.date).toLocaleDateString()}
+            <div>
+              <strong>Date:</strong>{" "}
+              {new Date(app.date).toLocaleDateString()}
             </div>
-            <div style={{ marginBottom: "8px" }}>
+            <div>
               <strong>Status:</strong>{" "}
-              <span style={{ textTransform: "capitalize" }}>{app.status}</span>
+              <span style={{ textTransform: "capitalize" }}>
+                {app.status}
+              </span>
             </div>
 
-            {/* STATUS & VIEW BUTTONS */}
-            <div>
+            <div style={{ marginTop: "8px" }}>
               {role === "doctor" && (
                 <>
-                  <button
-                    onClick={() => updateStatus(app._id, "pending")}
-                    style={{ marginRight: "10px" }}
-                  >
+                  <button onClick={() => updateStatus(app._id, "pending")}>
                     Pending
                   </button>
-                  <button
-                    onClick={() => updateStatus(app._id, "fulfilled")}
-                    style={{ marginRight: "10px" }}
-                  >
+                  <button onClick={() => updateStatus(app._id, "fulfilled")}>
                     Fulfilled
                   </button>
-                  <button
-                    onClick={() => updateStatus(app._id, "rejected")}
-                    style={{ marginRight: "10px" }}
-                  >
+                  <button onClick={() => updateStatus(app._id, "rejected")}>
                     Rejected
                   </button>
-
                   <button
                     onClick={() => navigate(`/edit/${app._id}`)}
                     style={{
-                      marginRight: "10px",
-                      backgroundColor: "#4caf50",
+                      marginLeft: "10px",
+                      background: "#4caf50",
                       color: "white",
-                      padding: "5px 10px",
-                      borderRadius: "5px",
                     }}
                   >
                     Edit
                   </button>
-
-                  <button
-                    onClick={() => handleDelete(app._id)}
-                    style={{ marginLeft: "10px", color: "red" }}
-                  >
-                    Delete
-                  </button>
                 </>
               )}
+
               <button
                 onClick={() => navigate(`/appointment/${app._id}`)}
-                style={{ marginLeft: "15px" }}
+                style={{ marginLeft: "10px" }}
               >
                 View
               </button>
+
+              {role === "doctor" && (
+                <button
+                  onClick={() => handleDelete(app._id)}
+                  style={{ marginLeft: "10px", color: "red" }}
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </li>
         ))}
       </ul>
 
       {/* PAGINATION */}
-      <div style={{ marginTop: "20px", textAlign: "center" }}>
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
         <button
           disabled={page === 1}
-          onClick={() => setPage((prev) => prev - 1)}
+          onClick={() => setPage((p) => p - 1)}
           style={{ marginRight: "10px" }}
         >
           Previous
         </button>
-        <span style={{ fontWeight: "bold" }}>Page {page}</span>
-        <button
-          onClick={() => setPage((prev) => prev + 1)}
-          style={{ marginLeft: "10px" }}
-        >
+
+        <strong>Page {page}</strong>
+
+        <button onClick={() => setPage((p) => p + 1)} style={{ marginLeft: "10px" }}>
           Next
         </button>
       </div>

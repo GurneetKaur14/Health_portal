@@ -8,12 +8,15 @@ export default function EditAppointment() {
 
   const role = getUserRole();
 
+  // FIX: added doctorId and patientId
   const [form, setForm] = useState({
     patientName: "",
     doctorName: "",
     date: "",
     time: "",
     status: "pending",
+    doctorId: "",
+    patientId: "",
   });
 
   const [error, setError] = useState("");
@@ -36,12 +39,15 @@ export default function EditAppointment() {
 
         const data = await res.json();
 
+        // FIX: include doctorId + patientId
         setForm({
           patientName: data.patientName,
           doctorName: data.doctorName,
           date: data.date?.split("T")[0] || "",
           time: data.time,
           status: data.status,
+          doctorId: data.doctorId,
+          patientId: data.patientId,
         });
       } catch (err) {
         console.error("Load error:", err);
@@ -69,7 +75,7 @@ export default function EditAppointment() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(form), // FIX: sends doctorId + patientId now
       });
 
       if (!res.ok) {
@@ -133,7 +139,6 @@ export default function EditAppointment() {
       {success && <p style={styles.success}>{success}</p>}
 
       <form onSubmit={handleSubmit}>
-        {/* Patient Name (Read-only for doctor & patient) */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Patient Name:</label>
           <input
@@ -146,7 +151,6 @@ export default function EditAppointment() {
           />
         </div>
 
-        {/* Doctor Name (Read-only) */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Doctor Name:</label>
           <input
@@ -159,7 +163,6 @@ export default function EditAppointment() {
           />
         </div>
 
-        {/* Both patient & doctor can change date/time */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Date:</label>
           <input
@@ -182,7 +185,6 @@ export default function EditAppointment() {
           />
         </div>
 
-        {/* Only doctor/admin can change status */}
         {role !== "patient" && (
           <div style={styles.formGroup}>
             <label style={styles.label}>Status:</label>
@@ -200,9 +202,7 @@ export default function EditAppointment() {
           </div>
         )}
 
-        <button type="submit" style={styles.button}>
-          Update
-        </button>
+        <button type="submit" style={styles.button}>Update</button>
       </form>
     </div>
   );
