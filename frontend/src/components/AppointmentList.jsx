@@ -149,6 +149,20 @@ export default function AppointmentsList() {
                   >
                     Rejected
                   </button>
+
+                  <button
+                    onClick={() => navigate(`/edit/${app._id}`)}
+                    style={{
+                      marginRight: "10px",
+                      backgroundColor: "#4caf50",
+                      color: "white",
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Edit
+                  </button>
+
                   <button
                     onClick={() => handleDelete(app._id)}
                     style={{ marginLeft: "10px", color: "red" }}

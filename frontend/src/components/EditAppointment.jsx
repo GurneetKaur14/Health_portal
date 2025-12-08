@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getToken, getUserRole } from "../utils/auth";
 
 export default function EditAppointment() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const role = getUserRole();
+
   const [form, setForm] = useState({
-    id: "",
     patientName: "",
-    doctor: "",
+    doctorName: "",
     date: "",
     time: "",
     status: "pending",
@@ -22,22 +24,27 @@ export default function EditAppointment() {
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/${id}`);
+        const token = getToken();
+
+        const res = await fetch(`${BASE_URL}/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (!res.ok) throw new Error("Failed to load appointment");
 
         const data = await res.json();
 
         setForm({
-          id: data.id || Date.now(),
           patientName: data.patientName,
-          doctor: data.doctor,
-          date: data.date ? data.date.split("T")[0] : "",
+          doctorName: data.doctorName,
+          date: data.date?.split("T")[0] || "",
           time: data.time,
           status: data.status,
         });
-
       } catch (err) {
-        console.error(err);
+        console.error("Load error:", err);
         setError(err.message);
       }
     };
@@ -53,28 +60,27 @@ export default function EditAppointment() {
     setError("");
     setSuccess("");
 
-    if (!form.patientName || !form.doctor || !form.date || !form.time) {
-      setError("All fields are required");
-      return;
-    }
+    const token = getToken();
 
     try {
       const res = await fetch(`${BASE_URL}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(form),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Failed to update appointment");
+        throw new Error(data.message || "Update failed");
       }
 
       setSuccess("Appointment updated successfully!");
-      setTimeout(() => navigate("/"), 1200);
-
+      setTimeout(() => navigate("/appointments"), 1200);
     } catch (err) {
-      console.error(err);
+      console.error("Update error:", err);
       setError(err.message);
     }
   };
@@ -127,8 +133,7 @@ export default function EditAppointment() {
       {success && <p style={styles.success}>{success}</p>}
 
       <form onSubmit={handleSubmit}>
-        <input type="hidden" name="id" value={form.id} />
-
+        {/* Patient Name (Read-only for doctor & patient) */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Patient Name:</label>
           <input
@@ -137,20 +142,24 @@ export default function EditAppointment() {
             name="patientName"
             value={form.patientName}
             onChange={handleChange}
+            disabled
           />
         </div>
 
+        {/* Doctor Name (Read-only) */}
         <div style={styles.formGroup}>
-          <label style={styles.label}>Doctor:</label>
+          <label style={styles.label}>Doctor Name:</label>
           <input
             style={styles.input}
             type="text"
-            name="doctor"
-            value={form.doctor}
+            name="doctorName"
+            value={form.doctorName}
             onChange={handleChange}
+            disabled
           />
         </div>
 
+        {/* Both patient & doctor can change date/time */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Date:</label>
           <input
@@ -168,28 +177,32 @@ export default function EditAppointment() {
             style={styles.input}
             type="text"
             name="time"
-            placeholder="HH:MM AM/PM"
             value={form.time}
             onChange={handleChange}
           />
         </div>
 
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Status:</label>
-          <select
-            style={styles.select}
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-          >
-            <option value="pending">pending</option>
-            <option value="confirmed">confirmed</option>
-            <option value="rejected">rejected</option>
-            <option value="cancelled">cancelled</option>
-          </select>
-        </div>
+        {/* Only doctor/admin can change status */}
+        {role !== "patient" && (
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Status:</label>
+            <select
+              style={styles.select}
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        )}
 
-        <button type="submit" style={styles.button}>Update</button>
+        <button type="submit" style={styles.button}>
+          Update
+        </button>
       </form>
     </div>
   );
