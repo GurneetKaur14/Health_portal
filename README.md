@@ -38,15 +38,15 @@ The system supports the following roles:
 
 ### 3. Protected Routes & Role-Based Access Control (RBAC)
 - **Admin-only routes:**  
-  - `/users` → Manage users (create, update, delete)  
+   Manage users (create, update, delete)  
 
 - **Doctor routes:**  
-  - `/appointments` → View and manage their own appointments  
-  - `/appointments/:id/status` → Update appointment status  
+   View and manage their own appointments  
+   Update appointment status  
 
 - **Patient routes:**  
-  - `/appointments` → Book new appointments  
-  - `/appointments/my` → View own appointments  
+   Book new appointments  
+   View own appointments  
 
 **Middleware:**  
 - `authorize(allowedRoles)` checks JWT validity and user role.  
