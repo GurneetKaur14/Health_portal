@@ -7,7 +7,7 @@ const cors = require("cors");
 const connectDB = require("./shared/middlewares/connect-db");
 
 const PORT = process.env.PORT || 3000;
-
+const hostname = "0.0.0.0";
 // Middlewares
 app.use(cors());
 app.use(express.json());

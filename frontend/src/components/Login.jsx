@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../api/client";
 
 export default function Login() {
-  const [identifier, setIdentifier] = useState(""); 
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
@@ -19,13 +19,12 @@ export default function Login() {
       await apiRequest("/users/login", {
         method: "POST",
         body: {
-          email: identifier, 
+          email: identifier,
           password,
         },
       });
 
       setMsg("OTP sent. Please check your email / phone.");
-      // 👉 redirect to OTP screen with identifier
       navigate("/verify-otp", { state: { email: identifier } });
     } catch (err) {
       setError(err.message);
@@ -33,23 +32,36 @@ export default function Login() {
   };
 
   const styles = {
+    page: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "100vh",
+      background: "#f7f7f7",
+      padding: "0 10px",
+    },
+
     container: {
       maxWidth: "400px",
-      margin: "60px auto",
+      width: "100%",
       padding: "20px",
       border: "1px solid #ddd",
       borderRadius: "8px",
       fontFamily: "Arial, sans-serif",
+      background: "white",
     },
+
     heading: { textAlign: "center", marginBottom: "20px" },
     group: { marginBottom: "15px", display: "flex", flexDirection: "column" },
     label: { fontWeight: "bold", marginBottom: "5px" },
+
     input: {
       padding: "8px",
       borderRadius: "4px",
       border: "1px solid #ccc",
       fontSize: "14px",
     },
+
     button: {
       width: "100%",
       padding: "10px",
@@ -61,6 +73,7 @@ export default function Login() {
       cursor: "pointer",
       marginTop: "5px",
     },
+
     link: {
       color: "blue",
       cursor: "pointer",
@@ -69,51 +82,51 @@ export default function Login() {
       marginTop: "15px",
       fontSize: "14px",
     },
+
     error: { color: "red", textAlign: "center", marginTop: "10px" },
     msg: { color: "green", textAlign: "center", marginTop: "10px" },
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Login</h2>
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Login</h2>
 
-      <form onSubmit={handleSubmit}>
-        <div style={styles.group}>
-          <label style={styles.label}>Email / Username</label>
-          <input
-            style={styles.input}
-            type="text"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div style={styles.group}>
+            <label style={styles.label}>Email / Username</label>
+            <input
+              style={styles.input}
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+            />
+          </div>
 
-        <div style={styles.group}>
-          <label style={styles.label}>Password</label>
-          <input
-            style={styles.input}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+          <div style={styles.group}>
+            <label style={styles.label}>Password</label>
+            <input
+              style={styles.input}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit" style={styles.button}>
-          Send OTP
-        </button>
-      </form>
+          <button type="submit" style={styles.button}>
+            Send OTP
+          </button>
+        </form>
 
-      {error && <p style={styles.error}>{error}</p>}
-      {msg && <p style={styles.msg}>{msg}</p>}
+        {error && <p style={styles.error}>{error}</p>}
+        {msg && <p style={styles.msg}>{msg}</p>}
 
-      <p
-        style={styles.link}
-        onClick={() => navigate("/register")}
-      >
-        Don't have an account? Register here
-      </p>
+        <p style={styles.link} onClick={() => navigate("/register")}>
+          Don't have an account? Register here
+        </p>
+      </div>
     </div>
   );
 }

@@ -35,10 +35,17 @@ const userValidationRules = (isUpdate = false) => {
 // Middleware to handle validation result
 const validateUser = (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const readableErrors = errors.array().map(err => err.msg);
+
+    return res.status(400).json({
+      message: readableErrors.join(", ")  // send clean string
+    });
   }
+
   next();
 };
+
 
 module.exports = { userValidationRules, validateUser };
